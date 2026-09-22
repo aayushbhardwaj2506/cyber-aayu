@@ -537,7 +537,7 @@ async def trigger_training(req: TrainRequest):
     })
     crud.log_event(db, cur_ep, 2, "LEARNING", {
         "source": "GAE_Engine",
-        "description": "Computed Generalized Advantage Estimates (γ=0.99, λ=0.95) & normalized advantages."
+        "description": "Computed Generalized Advantage Estimates (gamma=0.99, lambda=0.95) & normalized advantages."
     })
     crud.log_event(db, cur_ep, 3, "LEARNING", {
         "source": "MAPPO_Optimizer",
