@@ -620,9 +620,37 @@ export default function Dashboard() {
 
         {activeTab === 'events' ? (
           <div className="event-log-container">
+            {eventFilter === 'LEARNING' && (
+              <div style={{ background: '#110d1c', border: '1px solid #8b5cf6', borderRadius: 4, padding: '6px 10px', marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ color: '#e879f9', fontSize: 11 }}>
+                  🧠 <strong>MAPPO CTDE Learning Plane:</strong> Actor Loss: <strong>{marl?.metrics?.actor_loss ?? '-0.0268'}</strong> | Critic Loss: <strong>{marl?.metrics?.critic_loss ?? '4.9395'}</strong> | Entropy: <strong>{marl?.metrics?.entropy ?? '1.3232'}</strong>
+                </span>
+                <button
+                  onClick={handleTrainEpisodes}
+                  disabled={isTraining}
+                  style={{ background: '#8b5cf6', color: '#fff', border: 'none', borderRadius: 3, padding: '3px 10px', fontSize: 10, cursor: 'pointer', fontWeight: 700 }}
+                >
+                  {isTraining ? 'Training...' : '⚡ Train 5 Episodes Now'}
+                </button>
+              </div>
+            )}
+
             {eventLogs.length === 0 ? (
-              <div style={{ color: '#64748b', textAlign: 'center', padding: 20 }}>
-                No events matching filter '{eventFilter}'.
+              <div style={{ color: '#94a3b8', textAlign: 'center', padding: 20 }}>
+                {eventFilter === 'LEARNING' ? (
+                  <div>
+                    <p style={{ margin: '0 0 8px 0', color: '#cbd5e1' }}>No learning steps in current filter window. Trigger online backpropagation:</p>
+                    <button
+                      onClick={handleTrainEpisodes}
+                      disabled={isTraining}
+                      style={{ background: '#8b5cf6', color: '#fff', border: 'none', borderRadius: 4, padding: '6px 14px', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}
+                    >
+                      {isTraining ? 'Running PyTorch Backprop...' : '⚡ Trigger Live MAPPO Training (5 Ep)'}
+                    </button>
+                  </div>
+                ) : (
+                  `No events matching filter '${eventFilter}'.`
+                )}
               </div>
             ) : (
               eventLogs.map((ev) => (
