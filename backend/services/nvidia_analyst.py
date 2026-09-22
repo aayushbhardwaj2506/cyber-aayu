@@ -75,12 +75,15 @@ def explain_cyber_event(event_summary: Dict[str, Any]) -> str:
                     "max_tokens": 90,
                     "temperature": 0.3
                 }
-                resp = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=4)
+                resp = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=2.0)
                 if resp.status_code == 200:
                     data = resp.json()
                     return data["choices"][0]["message"]["content"].strip()
+                elif resp.status_code in (401, 403):
+                    # Key is unauthorized, break to instant deterministic fallback
+                    break
             except Exception:
-                pass
+                continue
 
     # Built-in High-Fidelity Local Explanation Engine (Always works 100% reliably)
     if contained:

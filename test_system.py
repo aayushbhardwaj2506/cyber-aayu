@@ -21,7 +21,8 @@ async def main():
     recent_msgs = comm_layer.get_recent_messages()
     print(f"Total recorded messages in bus: {len(recent_msgs)}")
     for m in recent_msgs[:3]:
-        print(f"  {m['sender']} -> {m['receiver']}: {m['message_type']} [{m['threat_level']}] Action: {m['recommended_action']}")
+        action_rec = m.get('content', {}).get('recommended_action', '') if isinstance(m.get('content'), dict) else ''
+        print(f"  {m['sender']} -> {m['receiver']}: {m['message_type']} [{m['threat_level']}] Action: {action_rec}")
 
     print("\n=== 4. Checking Database Persistence ===")
     db = SessionLocal()

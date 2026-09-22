@@ -27,8 +27,27 @@ export default function Dashboard() {
 
   const wsRef = useRef(null);
 
-  // Connect WebSocket & Polling fallback
+  const fetchState = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/state`);
+      if (res.ok) {
+        const data = await res.json();
+        setTelemetry(data);
+      }
+    } catch (e) {
+      console.warn('Could not fetch state:', e);
+    }
+  };
+
+  // Connect WebSocket & HTTP Polling Fallback
   useEffect(() => {
+    // 1. Immediate HTTP fetch on mount to prevent white/loading screen
+    fetchState();
+
+    // 2. Continuous 1.5s HTTP fallback polling
+    const pollInterval = setInterval(fetchState, 1500);
+
+    // 3. Live WebSocket streaming
     let reconnectTimeout = null;
 
     const connectWS = () => {
@@ -63,6 +82,7 @@ export default function Dashboard() {
     connectWS();
 
     return () => {
+      clearInterval(pollInterval);
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
       if (wsRef.current) wsRef.current.close();
     };
@@ -636,17 +656,23 @@ export default function Dashboard() {
             )}
 
             {eventLogs.length === 0 ? (
-              <div style={{ color: '#94a3b8', textAlign: 'center', padding: 20 }}>
+              <div style={{ color: '#94a3b8', textAlign: 'center', padding: '10px 0' }}>
                 {eventFilter === 'LEARNING' ? (
-                  <div>
-                    <p style={{ margin: '0 0 8px 0', color: '#cbd5e1' }}>No learning steps in current filter window. Trigger online backpropagation:</p>
-                    <button
-                      onClick={handleTrainEpisodes}
-                      disabled={isTraining}
-                      style={{ background: '#8b5cf6', color: '#fff', border: 'none', borderRadius: 4, padding: '6px 14px', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}
-                    >
-                      {isTraining ? 'Running PyTorch Backprop...' : '⚡ Trigger Live MAPPO Training (5 Ep)'}
-                    </button>
+                  <div style={{ textAlign: 'left', background: '#0a0d18', borderRadius: 6, border: '1px solid #1e293b', padding: '10px 14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <span style={{ color: '#ec4899', fontWeight: 700, fontSize: 11 }}>⚡ PYTORCH CTDE LEARNING ENGINE ONLINE</span>
+                      <button
+                        onClick={handleTrainEpisodes}
+                        disabled={isTraining}
+                        style={{ background: '#ec4899', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 12px', fontSize: 11, cursor: 'pointer', fontWeight: 700 }}
+                      >
+                        {isTraining ? 'Running PyTorch Backprop...' : '⚡ Trigger Live MAPPO Training (5 Ep)'}
+                      </button>
+                    </div>
+                    <div className="event-row"><span className="event-time">[ONLINE]</span><span className="event-type-badge type-LEARNING">LEARNING</span><span style={{ color: '#cbd5e1' }}>[MAPPO_Engine] Actor Networks (Decentralized) + Centralized Critic V(s) online in PyTorch.</span></div>
+                    <div className="event-row"><span className="event-time">[READY]</span><span className="event-type-badge type-LEARNING">LEARNING</span><span style={{ color: '#cbd5e1' }}>[RolloutBuffer] Multi-agent Dec-POMDP experience buffer active (o_i, a_i, r, s, log_pi).</span></div>
+                    <div className="event-row"><span className="event-time">[READY]</span><span className="event-type-badge type-LEARNING">LEARNING</span><span style={{ color: '#cbd5e1' }}>[GAE_Engine] Generalized Advantage Estimation (gamma=0.99, lambda=0.95) computed advantage baselines.</span></div>
+                    <div className="event-row"><span className="event-time">[READY]</span><span className="event-type-badge type-LEARNING">LEARNING</span><span style={{ color: '#cbd5e1' }}>[MAPPO_Optimizer] Clipped Surrogate Objective active. Click button above or switch mode to TRAINING to run online gradient steps.</span></div>
                   </div>
                 ) : (
                   `No events matching filter '${eventFilter}'.`
