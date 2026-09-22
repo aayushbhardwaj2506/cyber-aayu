@@ -302,7 +302,7 @@ async def websocket_endpoint(websocket: WebSocket):
             active_connections.remove(websocket)
 
 # --- REST Endpoints ---
-@app.get("/")
+@app.get("/api/health")
 def read_root():
     return {"status": "System Online", "version": "2.0.0", "marl": "MAPPO with CTDE"}
 
@@ -523,3 +523,10 @@ def request_ai_explanation():
     explanation = explain_cyber_event(summary)
     simulation_state["narration"] = explanation
     return {"narration": explanation}
+
+# --- Serve Frontend Static Build (Unified Single Service) ---
+from fastapi.staticfiles import StaticFiles
+frontend_dist = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "dist")
+if os.path.exists(frontend_dist):
+    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
+
