@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+websockets
+numpy
+torch
+python-dotenv
+requests
