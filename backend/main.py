@@ -526,7 +526,31 @@ def request_ai_explanation():
 
 # --- Serve Frontend Static Build (Unified Single Service) ---
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 frontend_dist = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "dist")
+
 if os.path.exists(frontend_dist):
-    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
+    assets_dir = os.path.join(frontend_dist, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/")
+    def serve_frontend_root():
+        index_file = os.path.join(frontend_dist, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file)
+        return {"status": "Frontend build not found", "path": frontend_dist}
+
+    @app.get("/{full_path:path}")
+    def serve_frontend_any(full_path: str):
+        if full_path.startswith("api") or full_path.startswith("ws") or full_path.startswith("docs") or full_path.startswith("openapi"):
+            return None
+        file_path = os.path.join(frontend_dist, full_path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        index_file = os.path.join(frontend_dist, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file)
+        return {"status": "Not Found"}
 
